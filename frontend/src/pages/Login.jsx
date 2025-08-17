@@ -31,7 +31,7 @@ const Login = () => {
       if (data.success) {
         login(data.user)
         toast({title: 'Login successful', status: 'success', duration: 3000})
-        navigate('/')
+        navigate('/home')
       } else {
         toast({title: 'Error', description: data.message, status: 'error',duration: 3000})
       }

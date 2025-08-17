@@ -1,9 +1,14 @@
 import { Container, Flex, Text, HStack, Button } from '@chakra-ui/react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 const Navbar = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
+
+  const handleHomeClick = () => {
+    navigate('/home')
+  }
 
   return (
     <Container maxW={"2560px"} px={4}>
@@ -23,10 +28,13 @@ const Navbar = () => {
         </Text>
 
         <HStack spacing={6} justifyContent="flex-end">
-          <Link to={"/"}>Home</Link>
+          <Link to="/home">
+            Home
+          </Link>
           {user ? (
             <>
-              <Link to={"/transactions"}>Transactions</Link> {/* Update link */}
+              <Link to={"/transactions"}>Transactions</Link>
+              <Link to={"/budget"}>Budget</Link>
               <Link to={"/profile"}>Profile</Link>
             </>
           ) : (
