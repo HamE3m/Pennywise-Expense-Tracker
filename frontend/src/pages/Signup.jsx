@@ -2,6 +2,7 @@ import {Box, Button, Container, FormControl, FormLabel, Input, Stack, Text, useT
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
+
 const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -18,7 +19,8 @@ const Signup = () => {
     })
   }
 
-const handleSubmit = async (e) => {
+
+  const handleSubmit = async (e) => {
   e.preventDefault()
   try {
     const response = await fetch('http://localhost:5000/api/user', {
@@ -29,7 +31,6 @@ const handleSubmit = async (e) => {
       body: JSON.stringify(formData),
     })
     const data = await response.json()
-    
     if (data.success) {
       toast({title: 'Account created successfully', status: 'success', duration: 3000})
       navigate('/login')
@@ -40,24 +41,44 @@ const handleSubmit = async (e) => {
     toast({title: 'Error', description: 'Could not connect to server', status: 'error', duration: 3000})
   }
 }
-
   return (
-    <Container maxW="container.sm" py={8}>
-      <Text
-        fontSize={{ base: "22", sm: "28" }}
-        fontWeight={"bold"}
-        textAlign={"center"}
-        bgGradient={"linear(to-r, cyan.400, blue.500)"}
-        bgClip={"text"}
-        mb={8}
-      >
-        PennyWise: Expense Tracker
-      </Text>
-      <Box borderWidth="1px" borderRadius="lg" p={8}>
+    <Box 
+      minH="100vh" 
+      bgGradient="linear(to-t, #1C495E, #17694D)"
+      fontFamily="'Roboto', sans-serif"
+    >
+      <Container maxW="container.sm" py={8}>
+        <Box textAlign="center" mb={8}>
+          <Text
+            fontSize="6xl"
+            fontWeight="bold"
+            color="white"
+            fontFamily="'Limelight', cursive"
+            mb={0}
+          >
+            PennyWise
+          </Text>
+          <Text
+            fontSize="lg"
+            color="white"
+            fontFamily="'Roboto', sans-serif"
+          >
+            A Budget Planner and Expense Tracker
+          </Text>
+        </Box>
+
+        <Box 
+          borderWidth="1px" 
+          borderRadius="xl" 
+          p={8}
+          bg="white"
+          borderColor="gray.200"
+          shadow="sm"
+        >
         <Stack spacing={4}>
-          <Text fontSize="2xl" fontWeight="bold">Sign Up</Text>
+          <Text fontSize="2xl" fontWeight="bold" fontFamily="'Roboto', sans-serif">Sign Up</Text>
           <FormControl>
-            <FormLabel>Name</FormLabel>
+            <FormLabel fontFamily="'Roboto', sans-serif">Name</FormLabel>
             <Input
               type="text"
               name="name"
@@ -66,7 +87,7 @@ const handleSubmit = async (e) => {
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Email</FormLabel>
+            <FormLabel fontFamily="'Roboto', sans-serif">Email</FormLabel>
             <Input
               type="email"
               name="email"
@@ -75,7 +96,7 @@ const handleSubmit = async (e) => {
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Password</FormLabel>
+            <FormLabel fontFamily="'Roboto', sans-serif">Password</FormLabel>
             <Input
               type="password"
               name="password"
@@ -83,15 +104,22 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
             />
           </FormControl>
-          <Button colorScheme="blue" onClick={handleSubmit}>
+          <Button 
+            bg="#17694D" 
+            color="white" 
+            _hover={{ bg: "#1C495E" }}
+            _active={{ bg: "#145A3F" }}
+            onClick={handleSubmit}
+          >
             Sign Up
           </Button>
-          <Text>
-            Already have an account? <Link to="/login" style={{color: 'blue'}}>Login</Link>
+          <Text fontFamily="'Roboto', sans-serif">
+            Already have an account? <Link to="/login" style={{color: '#17694D'}}>Login</Link>
           </Text>
         </Stack>
       </Box>
-    </Container>
+      </Container>
+    </Box>
   )
 }
 

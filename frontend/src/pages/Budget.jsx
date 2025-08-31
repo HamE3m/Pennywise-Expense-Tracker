@@ -1,35 +1,9 @@
-import { useState, useEffect } from 'react'
-import {
-  Container,
-  Box,
-  Text,
-  VStack,
-  HStack,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  useToast,
-  Grid,
-  GridItem,
-  Progress,
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
-  Badge,
-  Divider
-} from '@chakra-ui/react'
-import { useAuth } from '../context/AuthContext'
+import {useState, useEffect} from 'react'
+import {Container, Box, Text, VStack, HStack, Button, FormControl, FormLabel, Input, useToast, Stat, StatLabel, StatNumber, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure} from '@chakra-ui/react'
+import {useAuth} from '../context/AuthContext'
+import MonthlySpendingChart from '../components/MonthlySpendingChart'
 import MonthlyTransactionHistory from '../components/MonthlyTransactionHistory'
+
 
 const Budget = () => {
   const { user } = useAuth()
@@ -39,112 +13,97 @@ const Budget = () => {
   const [updating, setUpdating] = useState(false)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const toast = useToast()
-
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const currentDate = new Date()
-  const currentMonthName = currentDate.toLocaleString('default', { month: 'long' })
-  const currentYear = currentDate.getFullYear()
+  const isCurrentMonth = selectedMonth === currentDate.getMonth() + 1 && selectedYear === currentDate.getFullYear()
 
-  // Fetch current budget
-  const fetchBudget = async () => {
+
+  const getMonthName = (monthNum) => {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    return months[monthNum - 1]
+  }
+  const goToPreviousMonth = () => {
+    if (selectedMonth === 1) {
+      setSelectedMonth(12)
+      setSelectedYear(selectedYear - 1)
+    } else {
+      setSelectedMonth(selectedMonth - 1)
+    }
+  }
+  const goToNextMonth = () => {
+    if (selectedMonth === 12) {
+      setSelectedMonth(1)
+      setSelectedYear(selectedYear + 1)
+    } else {
+      setSelectedMonth(selectedMonth + 1)
+    }
+  }
+  const goToCurrentMonth = () => {
+    setSelectedMonth(currentDate.getMonth() + 1)
+    setSelectedYear(currentDate.getFullYear())
+  }
+  const fetchBudget = async (month = selectedMonth, year = selectedYear) => {
     try {
       setLoading(true)
-      const response = await fetch(`http://localhost:5000/api/budget/${user.id}`)
+      const response = await fetch(`http://localhost:5000/api/budget/${user.id}?month=${month}&year=${year}`)
       const data = await response.json()
-
       if (data.success) {
         setBudget(data.data)
         setBudgetAmount(data.data.totalBudget.toString())
       } else {
-        toast({
-          title: 'Error',
-          description: 'Could not load budget',
-          status: 'error',
-          duration: 3000
-        })
+        setBudget(null)
+        setBudgetAmount('0')
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Could not load budget',
-        status: 'error',
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Could not load budget', status: 'error', duration: 3000})
     } finally {
       setLoading(false)
     }
   }
 
-  // Update budget
+
   const updateBudget = async () => {
     if (!budgetAmount || parseFloat(budgetAmount) < 0) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a valid budget amount',
-        status: 'error',
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Please enter a valid budget amount', status: 'error', duration: 3000})
       return
     }
-
     try {
       setUpdating(true)
-      
-      console.log('Sending budget update request:', {
-        userId: user.id,
-        totalBudget: parseFloat(budgetAmount),
-        month: currentDate.getMonth() + 1,
-        year: currentDate.getFullYear()
-      })
-
       const response = await fetch(`http://localhost:5000/api/budget/${user.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           totalBudget: parseFloat(budgetAmount),
-          month: currentDate.getMonth() + 1,
-          year: currentDate.getFullYear()
+          month: selectedMonth,
+          year: selectedYear
         })
       })
-
       const data = await response.json()
-      console.log('Budget update response:', data)
-      
       if (data.success) {
         setBudget(data.data)
         onClose()
-        toast({
-          title: 'Success',
-          description: 'Budget updated successfully',
-          status: 'success',
-          duration: 3000
-        })
+        toast({title: 'Success', description: `Budget updated successfully for ${getMonthName(selectedMonth)} ${selectedYear}`, status: 'success', duration: 3000})
       } else {
-        console.error('Budget update failed:', data)
-        toast({
-          title: 'Error',
-          description: data.message || 'Could not update budget',
-          status: 'error',
-          duration: 3000
-        })
+        toast({title: 'Error', description: data.message || 'Could not update budget', status: 'error', duration: 3000})
       }
     } catch (error) {
-      console.error('Budget update error:', error)
-      toast({
-        title: 'Error',
-        description: 'Could not update budget',
-        status: 'error',
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Could not update budget', status: 'error', duration: 3000})
     } finally {
       setUpdating(false)
     }
   }
-
   useEffect(() => {
     if (user) {
       fetchBudget()
     }
   }, [user])
+  useEffect(() => {
+    if (user) {
+      fetchBudget(selectedMonth, selectedYear)
+    }
+  }, [selectedMonth, selectedYear, user])
+
 
   const getProgressColor = (percentage) => {
     if (percentage >= 90) return 'red'
@@ -152,133 +111,142 @@ const Budget = () => {
     return 'green'
   }
 
+
   const getBudgetStatus = () => {
     if (!budget || budget.totalBudget === 0) return 'No budget set'
-    
     const percentage = (budget.spentAmount / budget.totalBudget) * 100
     if (percentage >= 100) return 'Budget exceeded!'
     if (percentage >= 90) return 'Nearly exceeded'
     if (percentage >= 70) return 'Be careful'
     return 'On track'
   }
-
   if (loading) {
     return (
       <Container maxW="container.lg" py={8}>
-        <Text textAlign="center">Loading budget...</Text>
+        <Text textAlign="center" fontFamily="'Roboto', sans-serif">Loading budget...</Text>
       </Container>
     )
   }
 
+
   const budgetPercentage = budget && budget.totalBudget > 0 
     ? (budget.spentAmount / budget.totalBudget) * 100 
     : 0
-
   return (
-    <Container maxW="container.lg" py={8}>
-      {/* Header */}
-      <Box textAlign="center" mb={8}>
-        <Text fontSize="3xl" fontWeight="bold" color="gray.800">
+    <Box 
+      minH="100vh" 
+      bgGradient="linear(to-t, #1C495E, #17694D)"
+      fontFamily="'Roboto', sans-serif"
+    >
+      <Container maxW="container.lg" py={8}>
+      <Box textAlign="center" mb={10}>
+        <Text fontSize="4xl" fontWeight="bold" color="white" mb={2} fontFamily="'Roboto', sans-serif">
           Monthly Budget
         </Text>
-        <Text fontSize="lg" color="gray.600">
-          {currentMonthName} {currentYear}
-        </Text>
-      </Box>
-
-      {/* Budget Overview */}
-      <Grid templateColumns="repeat(auto-fit, minmax(250px, 1fr))" gap={6} mb={8}>
-        <GridItem>
-          <Stat p={6} borderWidth="1px" borderRadius="lg" bg="white" borderColor="gray.200">
-            <StatLabel color="gray.600">Total Budget</StatLabel>
-            <StatNumber color="gray.800">৳{budget?.totalBudget?.toFixed(2) || '0.00'}</StatNumber>
-            <StatHelpText color="gray.600">
-              Monthly allocation
-            </StatHelpText>
-          </Stat>
-        </GridItem>
-
-        <GridItem>
-          <Stat p={6} borderWidth="1px" borderRadius="lg" bg="white" borderColor="gray.200">
-            <StatLabel color="gray.600">Spent Amount</StatLabel>
-            <StatNumber color="gray.800">৳{budget?.spentAmount?.toFixed(2) || '0.00'}</StatNumber>
-            <StatHelpText color="gray.600">
-              This month's expenses
-            </StatHelpText>
-          </Stat>
-        </GridItem>
-
-        <GridItem>
-          <Stat p={6} borderWidth="1px" borderRadius="lg" bg="white" borderColor="gray.200">
-            <StatLabel color="gray.600">Remaining Budget</StatLabel>
-            <StatNumber color="gray.800">৳{budget?.remainingBudget?.toFixed(2) || '0.00'}</StatNumber>
-            <StatHelpText color="gray.600">
-              Available to spend
-            </StatHelpText>
-          </Stat>
-        </GridItem>
-      </Grid>
-
-      {/* Budget Progress */}
-      <Box p={6} borderWidth="1px" borderRadius="lg" bg="white" mb={6}>
-        <VStack spacing={4}>
-          <HStack justify="space-between" width="100%">
-            <Text fontSize="xl" fontWeight="bold">
-              Budget Progress
+        <HStack justify="center" align="center" spacing={4} mb={2}>
+          <Button
+            onClick={goToPreviousMonth}
+            variant="outline"
+            size="sm"
+            minW="40px"
+            px={2}
+            _hover={{ bg: "whiteAlpha.200" }}
+            fontSize="lg"
+            color="white"
+            borderColor="whiteAlpha.300"
+          >
+            ‹
+          </Button>
+          <VStack spacing={1}>
+            <Text fontSize="xl" fontWeight="semibold" color="white" minW="200px" fontFamily="'Roboto', sans-serif">
+              {getMonthName(selectedMonth)} {selectedYear}
             </Text>
-            <Badge 
-              colorScheme={getProgressColor(budgetPercentage)} 
-              fontSize="sm"
-              px={3}
-              py={1}
-            >
-              {getBudgetStatus()}
-            </Badge>
-          </HStack>
-          
-          <Box width="100%">
-            <HStack justify="space-between" mb={2}>
-              <Text fontSize="sm" color="gray.600">
-                {budgetPercentage.toFixed(1)}% used
-              </Text>
-              <Text fontSize="sm" color="gray.600">
-                ৳{budget?.spentAmount?.toFixed(2) || '0'} / ৳{budget?.totalBudget?.toFixed(2) || '0'}
-              </Text>
-            </HStack>
-            <Progress 
-              value={budgetPercentage} 
-              colorScheme={getProgressColor(budgetPercentage)}
-              size="lg"
-              borderRadius="md"
-            />
-          </Box>
-        </VStack>
+            {!isCurrentMonth && (
+              <Button
+                size="xs"
+                variant="ghost"
+                colorScheme="whiteAlpha"
+                onClick={goToCurrentMonth}
+                fontSize="xs"
+                color="gray.100"
+                _hover={{ bg: "whiteAlpha.200" }}
+              >
+                Go to current month
+              </Button>
+            )}
+          </VStack>
+          <Button
+            onClick={goToNextMonth}
+            variant="outline"
+            size="sm"
+            minW="40px"
+            px={2}
+            _hover={{ bg: "whiteAlpha.200" }}
+            fontSize="lg"
+            color="white"
+            borderColor="whiteAlpha.300"
+          >
+            ›
+          </Button>
+        </HStack>
       </Box>
-
-      {/* Action Buttons */}
-      <HStack justify="center" spacing={4} mb={8}>
-        <Button 
-          colorScheme="blue" 
-          size="lg"
-          onClick={onOpen}
-        >
-          {budget?.totalBudget > 0 ? 'Update Budget' : 'Set Budget'}
-        </Button>
-      </HStack>
-
-      {/* Divider */}
-      <Divider my={8} />
-
-      {/* Monthly Transaction History */}
-      {budget && budget.totalBudget > 0 && (
-        <MonthlyTransactionHistory 
-          month={currentDate.getMonth() + 1} 
-          year={currentDate.getFullYear()}
-          onBalanceUpdate={() => fetchBudget()} // Refresh budget when transactions are deleted
+      <Box mb={10}>
+        <Stat p={4} borderWidth="1px" borderRadius="xl" bg="white" borderColor="gray.200" shadow="sm">
+          <HStack justify="space-between" align="center">
+            <VStack align="start" spacing={0} flex={1}>
+              <StatLabel color="gray.600" fontSize="sm">
+                {isCurrentMonth ? 'Monthly allocation' : `Budget for ${getMonthName(selectedMonth)} ${selectedYear}`}
+              </StatLabel>
+              <StatNumber color="gray.800" fontSize="xl">৳{budget?.totalBudget?.toFixed(2) || '0.00'}</StatNumber>
+            </VStack>
+            <Button 
+              colorScheme="gray"
+              variant="outline"
+              bg="white"
+              color="gray.700"
+              borderColor="gray.300"
+              size="sm"
+              onClick={onOpen}
+              flexShrink={0}
+              px={4}
+              py={3}
+              fontSize="sm"
+              fontWeight="medium"
+              borderRadius="lg"
+              _hover={{
+                bg: "gray.50",
+                borderColor: "gray.400"
+              }}
+              _active={{
+                bg: "gray.100"
+              }}
+            >
+              {budget?.totalBudget > 0 ? 'Update' : 'Set'}
+            </Button>
+          </HStack>
+        </Stat>
+      </Box>
+      <Box mb={12}>
+        <MonthlySpendingChart 
+          month={selectedMonth} 
+          year={selectedYear}
+          budget={budget}
         />
-      )}
-
-      {/* Budget Modal */}
+      </Box>
+      <Box 
+        p={6} 
+        borderWidth="1px" 
+        borderRadius="xl" 
+        bg="white" 
+        borderColor="gray.200" 
+        shadow="sm"
+      >
+        <MonthlyTransactionHistory 
+          month={selectedMonth} 
+          year={selectedYear}
+          onBalanceUpdate={() => fetchBudget(selectedMonth, selectedYear)}
+        />
+      </Box>
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay />
         <ModalContent>
@@ -288,11 +256,11 @@ const Budget = () => {
           <ModalCloseButton />
           <ModalBody>
             <VStack spacing={4}>
-              <Text color="gray.600" textAlign="center">
-                Set your budget for {currentMonthName} {currentYear}
+              <Text color="gray.600" textAlign="center" fontFamily="'Roboto', sans-serif">
+                Set your budget for {getMonthName(selectedMonth)} {selectedYear}
               </Text>
               <FormControl>
-                <FormLabel>Budget Amount (৳)</FormLabel>
+                <FormLabel fontFamily="'Roboto', sans-serif">Budget Amount (৳)</FormLabel>
                 <Input
                   type="number"
                   value={budgetAmount}
@@ -318,6 +286,7 @@ const Budget = () => {
         </ModalContent>
       </Modal>
     </Container>
+    </Box>
   )
 }
 

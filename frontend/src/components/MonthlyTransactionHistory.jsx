@@ -1,26 +1,6 @@
-import { useState, useEffect } from 'react'
-import { 
-  Box, 
-  VStack, 
-  HStack, 
-  Text, 
-  Spinner, 
-  Alert, 
-  AlertIcon,
-  Button,
-  useToast,
-  Flex,
-  IconButton,
-  useDisclosure,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  Badge
-} from '@chakra-ui/react'
-import { useAuth } from '../context/AuthContext'
+import {useState, useEffect} from 'react'
+import {Box, VStack, HStack, Text, Spinner, Alert, AlertIcon,Button,useToast,Flex,IconButton,useDisclosure,AlertDialog,AlertDialogBody,AlertDialogFooter,AlertDialogHeader,AlertDialogContent,AlertDialogOverlay} from '@chakra-ui/react'
+import {useAuth} from '../context/AuthContext'
 
 const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
   const { user } = useAuth()
@@ -33,6 +13,7 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [transactionToDelete, setTransactionToDelete] = useState(null)
   const toast = useToast()
+
 
   const fetchTransactions = async (pageNum = 1) => {
     try {
@@ -49,23 +30,16 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
       }
     } catch (error) {
       setError('Could not load transactions')
-      toast({
-        title: 'Error',
-        description: 'Could not load transaction history',
-        status: 'error',
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Could not load transaction history', status: 'error', duration: 3000})
     } finally {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     if (user && month && year) {
       fetchTransactions()
     }
   }, [user, month, year])
-
   const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
@@ -77,64 +51,48 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
     })
   }
 
+
   const getTransactionColor = (type) => {
     return type === 'income' ? 'green.500' : 'red.500'
   }
 
+
   const getTransactionSign = (type) => {
     return type === 'income' ? '+' : '-'
   }
+
 
   const handlePageChange = (newPage) => {
     setPage(newPage)
     fetchTransactions(newPage)
   }
 
+
   const handleDeleteClick = (transaction) => {
     setTransactionToDelete(transaction)
     onOpen()
   }
 
+
   const handleDeleteConfirm = async () => {
     if (!transactionToDelete) return
-
     try {
       setDeletingId(transactionToDelete._id)
       const response = await fetch(`http://localhost:5000/api/transactions/${user.id}/${transactionToDelete._id}`, {
         method: 'DELETE'
       })
       const data = await response.json()
-
       if (data.success) {
-        // Update transactions list
         setTransactions(transactions.filter(t => t._id !== transactionToDelete._id))
-        
-        // Update parent component's balance
         if (onBalanceUpdate) {
           onBalanceUpdate(data.data.newBalance)
         }
-
-        toast({
-          title: 'Success',
-          description: 'Transaction deleted successfully',
-          status: 'success',
-          duration: 3000
-        })
+        toast({title: 'Success', description: 'Transaction deleted successfully', status: 'success', duration: 3000})
       } else {
-        toast({
-          title: 'Error',
-          description: data.message || 'Could not delete transaction',
-          status: 'error',
-          duration: 3000
-        })
+        toast({title: 'Error', description: data.message || 'Could not delete transaction', status: 'error', duration: 3000})
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Could not delete transaction',
-        status: 'error',
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Could not delete transaction', status: 'error', duration: 3000})
     } finally {
       setDeletingId(null)
       setTransactionToDelete(null)
@@ -142,13 +100,12 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
     }
   }
 
+
   const getMonthName = (monthNum) => {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ]
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     return months[monthNum - 1]
   }
+
 
   const getTotalsByType = () => {
     const totals = transactions.reduce(
@@ -164,7 +121,6 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
     )
     return totals
   }
-
   if (loading) {
     return (
       <Box textAlign="center" py={8}>
@@ -173,7 +129,6 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
       </Box>
     )
   }
-
   if (error) {
     return (
       <Alert status="error" borderRadius="md">
@@ -183,31 +138,19 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
     )
   }
 
-  const totals = getTotalsByType()
 
+  const totals = getTotalsByType()
   return (
     <Box>
-      <HStack justify="space-between" align="center" mb={4}>
+      <Box mb={4}>
         <Text fontSize="2xl" fontWeight="bold">
           {getMonthName(month)} {year} Transactions
         </Text>
-        <HStack spacing={3}>
-          <Badge colorScheme="green" fontSize="sm" px={3} py={1}>
-            Income: ৳{totals.income.toFixed(2)}
-          </Badge>
-          <Badge colorScheme="red" fontSize="sm" px={3} py={1}>
-            Expense: ৳{totals.expense.toFixed(2)}
-          </Badge>
-        </HStack>
-      </HStack>
-
+      </Box>
       {transactions.length === 0 ? (
         <Box textAlign="center" py={8}>
           <Text color="gray.500" fontSize="lg">
             No transactions found for {getMonthName(month)} {year}
-          </Text>
-          <Text color="gray.400" fontSize="sm" mt={2}>
-            Add income or expenses to see them here!
           </Text>
         </Box>
       ) : (
@@ -226,29 +169,18 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
               >
                 <Flex justify="space-between" align="center">
                   <VStack align="start" spacing={1} flex={1}>
-                    <HStack>
-                      <Text fontWeight="medium" color="gray.800" fontSize="md">
-                        {transaction.category}
-                      </Text>
-                      <Badge 
-                        size="sm" 
-                        colorScheme={transaction.type === 'income' ? 'green' : 'red'}
-                      >
-                        {transaction.type}
-                      </Badge>
-                    </HStack>
-                    
+                    <Text fontWeight="medium" color="gray.800" fontSize="md">
+                      {transaction.category}
+                    </Text>
                     {transaction.description && (
                       <Text fontSize="sm" color="gray.600">
                         {transaction.description}
                       </Text>
                     )}
-                    
                     <Text fontSize="sm" color="gray.500">
                       {formatDate(transaction.date)}
                     </Text>
                   </VStack>
-
                   <HStack align="center" spacing={3}>
                     <VStack align="end" spacing={1}>
                       <HStack align="center">
@@ -270,13 +202,12 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
                         </Text>
                       </HStack>
                     </VStack>
-
                     <IconButton
                       size="sm"
                       colorScheme="red"
-                      variant="outline"
+                      variant="ghost"
                       aria-label="Delete transaction"
-                      icon={<Text fontSize="sm" fontWeight="bold">×</Text>}
+                      icon={<Text fontSize="lg" fontWeight="bold">×</Text>}
                       onClick={() => handleDeleteClick(transaction)}
                       isLoading={deletingId === transaction._id}
                     />
@@ -285,7 +216,6 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
               </Box>
             ))}
           </VStack>
-
           {totalPages > 1 && (
             <Flex justify="center" mt={8} gap={2}>
               <Button
@@ -295,7 +225,6 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
               >
                 Previous
               </Button>
-              
               <HStack spacing={2}>
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                   let pageNum
@@ -307,8 +236,7 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
                     pageNum = totalPages - 4 + i
                   } else {
                     pageNum = page - 2 + i
-                  }
-                  
+                  }                  
                   return (
                     <Button
                       key={pageNum}
@@ -321,8 +249,7 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
                     </Button>
                   )
                 })}
-              </HStack>
-              
+              </HStack>              
               <Button
                 size="sm"
                 onClick={() => handlePageChange(page + 1)}
@@ -334,8 +261,6 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
           )}
         </>
       )}
-
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={isOpen}
         onClose={onClose}
@@ -346,7 +271,6 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
               Delete Transaction
             </AlertDialogHeader>
-
             <AlertDialogBody>
               Are you sure you want to delete this transaction?
               <br />
@@ -356,7 +280,6 @@ const MonthlyTransactionHistory = ({ month, year, onBalanceUpdate }) => {
                 This will also update your balance and budget calculations.
               </Text>
             </AlertDialogBody>
-
             <AlertDialogFooter>
               <Button onClick={onClose}>
                 Cancel

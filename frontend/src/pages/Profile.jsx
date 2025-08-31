@@ -1,7 +1,7 @@
 import {Container, Box, Text, VStack, HStack, Divider, Button, useToast, Input, FormControl, FormLabel} from '@chakra-ui/react'
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import {useEffect, useState} from 'react'
+import {useNavigate} from 'react-router-dom'
+import {useAuth} from '../context/AuthContext'
 
 const Profile = () => {
   const { user, login, logout } = useAuth()
@@ -14,12 +14,12 @@ const Profile = () => {
     password: '',
     newPassword: ''
   })
-
   useEffect(() => {
     if (!user) {
       navigate('/login')
     }
   }, [user, navigate])
+
 
   const handleChange = (e) => {
     setFormData({
@@ -27,6 +27,7 @@ const Profile = () => {
       [e.target.name]: e.target.value
     })
   }
+
 
   const handleEdit = () => {
     setIsEditing(true)
@@ -38,17 +39,15 @@ const Profile = () => {
     })
   }
 
+
   const handleSave = async () => {
     try {
       const response = await fetch(`http://localhost:5000/api/user/${user.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(formData),
       })
       const data = await response.json()
-      
       if (data.success) {
         login(data.user)
         setIsEditing(false)
@@ -61,29 +60,41 @@ const Profile = () => {
     }
   }
 
+
   const handleLogout = () => {
     logout()
     toast({title: 'Logged out successfully', status: 'success', duration: 3000})
     navigate('/login')
   }
-
 return (
-    <Container maxW="container.md" py={8}>
-      <Text
-        fontSize={{ base: "22", sm: "28" }}
-        fontWeight={"bold"}
-        textAlign={"center"}
-        color={"black"}
-        mb={8}
-      >Profile Information</Text>
-      
-      <Box borderWidth="1px" borderRadius="lg" p={8}>
+    <Box 
+      minH="100vh" 
+      bgGradient="linear(to-t, #1C495E, #17694D)"
+      fontFamily="'Roboto', sans-serif"
+    >
+      <Container maxW="container.md" py={8}>
+        <Text
+          fontSize="4xl"
+          fontWeight={"bold"}
+          textAlign={"center"}
+          color={"white"}
+          mb={8}
+          fontFamily="'Roboto', sans-serif"
+        >Profile Information</Text>
+      <Box 
+        borderWidth="1px" 
+        borderRadius="xl" 
+        p={8}
+        bg="white"
+        borderColor="gray.200"
+        shadow="sm"
+      >
         {user ? (
           <VStack spacing={4} align="stretch">
             {isEditing ? (
               <>
                 <FormControl>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel fontFamily="'Roboto', sans-serif">Name</FormLabel>
                   <Input
                     name="name"
                     value={formData.name}
@@ -91,7 +102,7 @@ return (
                   />
                 </FormControl>
                 <FormControl>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel fontFamily="'Roboto', sans-serif">Email</FormLabel>
                   <Input
                     name="email"
                     value={formData.email}
@@ -99,7 +110,7 @@ return (
                   />
                 </FormControl>
                 <FormControl>
-                  <FormLabel>Current Password</FormLabel>
+                  <FormLabel fontFamily="'Roboto', sans-serif">Current Password</FormLabel>
                   <Input
                     type="password"
                     name="password"
@@ -108,7 +119,7 @@ return (
                   />
                 </FormControl>
                 <FormControl>
-                  <FormLabel>New Password (Optional)</FormLabel>
+                  <FormLabel fontFamily="'Roboto', sans-serif">New Password (Optional)</FormLabel>
                   <Input
                     type="password"
                     name="newPassword"
@@ -128,20 +139,27 @@ return (
             ) : (
               <>
                 <HStack justify="space-between">
-                  <Text fontWeight="bold">User ID:</Text>
-                  <Text>{user.id}</Text>
+                  <Text fontWeight="bold" fontFamily="'Roboto', sans-serif">User ID:</Text>
+                  <Text fontFamily="'Roboto', sans-serif">{user.id}</Text>
                 </HStack>
                 <Divider />
                 <HStack justify="space-between">
-                  <Text fontWeight="bold">Name:</Text>
-                  <Text>{user.name}</Text>
+                  <Text fontWeight="bold" fontFamily="'Roboto', sans-serif">Name:</Text>
+                  <Text fontFamily="'Roboto', sans-serif">{user.name}</Text>
                 </HStack>
                 <Divider />
                 <HStack justify="space-between">
-                  <Text fontWeight="bold">Email:</Text>
-                  <Text>{user.email}</Text>
+                  <Text fontWeight="bold" fontFamily="'Roboto', sans-serif">Email:</Text>
+                  <Text fontFamily="'Roboto', sans-serif">{user.email}</Text>
                 </HStack>
-                <Button colorScheme="blue" onClick={handleEdit} mt={4}>
+                <Button 
+                  bg="#17694D" 
+                  color="white" 
+                  _hover={{ bg: "#1C495E" }}
+                  _active={{ bg: "#145A3F" }}
+                  onClick={handleEdit} 
+                  mt={4}
+                >
                   Edit Profile
                 </Button>
                 <Button colorScheme="red" onClick={handleLogout} mt={4}>
@@ -151,10 +169,11 @@ return (
             )}
           </VStack>
         ) : (
-          <Text textAlign="center">Please log in to view profile</Text>
+          <Text textAlign="center" fontFamily="'Roboto', sans-serif">Please log in to view profile</Text>
         )}
       </Box>
-    </Container>
+      </Container>
+    </Box>
   )
 }
 

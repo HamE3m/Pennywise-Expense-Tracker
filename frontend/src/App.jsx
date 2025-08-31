@@ -1,5 +1,5 @@
-import { Box } from '@chakra-ui/react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import {Box} from '@chakra-ui/react';
+import {Routes, Route, useLocation, Navigate} from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import Profile from './pages/Profile';
 import Login from './pages/Login';
@@ -11,7 +11,6 @@ import Navbar from './components/Navbar';
 function App() {
   const location = useLocation();
   const isAuthPage = ['/login', '/signup'].includes(location.pathname);
-
   return (
     <Box minH={"100vh"}>
       {!isAuthPage && <Navbar />}

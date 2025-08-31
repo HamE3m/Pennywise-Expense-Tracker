@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import {useEffect, useState} from 'react'
 import {Container, Box, Text, VStack, HStack, Button, FormControl, FormLabel, Input, useToast, Textarea, Grid, GridItem, Select} from '@chakra-ui/react'
-import { useAuth } from '../context/AuthContext'
+import {useAuth} from '../context/AuthContext'
 import TransactionHistory from '../components/TransactionHistory'
+
 
 const Transactions = () => {
   const { user } = useAuth()
@@ -13,10 +14,7 @@ const Transactions = () => {
   const [balance, setBalance] = useState(user?.balance || 0)
   const [refreshHistory, setRefreshHistory] = useState(0)
   const toast = useToast()
-
-  // Expense categories
   const expenseCategories = ['Rent', 'Food', 'Travel', 'Groceries', 'Shopping', 'Others']
-
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -29,34 +27,19 @@ const Transactions = () => {
         toast({title: 'Error', description: 'Could not fetch balance', status: 'error', duration: 3000})
       }
     }
-
     if (user) {
       fetchBalance()
     }
   }, [user, toast])
-
   const handleTransaction = async (type, amount, description, category = null) => {
     if (!amount) {
-      toast({
-        title: 'Error', 
-        description: 'Please enter an amount', 
-        status: 'error', 
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Please enter an amount', status: 'error', duration: 3000})
       return
     }
-
-    // For expenses, require category selection
     if (type === 'expense' && !category) {
-      toast({
-        title: 'Error', 
-        description: 'Please select a category for the expense', 
-        status: 'error', 
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Please select a category for the expense', status: 'error', duration: 3000})
       return
     }
-
     try {
       const response = await fetch(`http://localhost:5000/api/transactions/${user.id}`, {
         method: 'POST',
@@ -69,11 +52,8 @@ const Transactions = () => {
         }),
       })
       const data = await response.json()
-      
       if (data.success) {
         setBalance(data.data.newBalance)
-        
-        // Clear the appropriate form
         if (type === 'income') {
           setIncomeAmount('')
           setIncomeDescription('')
@@ -81,83 +61,75 @@ const Transactions = () => {
           setExpenseAmount('')
           setExpenseDescription('')
           setExpenseCategory('')
-        }
-        
-        setRefreshHistory(prev => prev + 1) // Trigger history refresh
-        toast({
-          title: `${type === 'income' ? 'Income' : 'Expense'} added successfully`, 
-          status: 'success', 
-          duration: 3000
-        })
+        }      
+        setRefreshHistory(prev => prev + 1)
+        toast({title: `${type === 'income' ? 'Income' : 'Expense'} added successfully`, status: 'success', duration: 3000})
       } else {
-        toast({
-          title: 'Error', 
-          description: data.message || 'Could not add transaction', 
-          status: 'error', 
-          duration: 3000
-        })
+        toast({title: 'Error', description: data.message || 'Could not add transaction', status: 'error', duration: 3000})
       }
     } catch (error) {
-      toast({
-        title: 'Error', 
-        description: 'Could not add transaction', 
-        status: 'error', 
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Could not add transaction', status: 'error', duration: 3000})
     }
   }
-
   return (
-    <Container maxW="container.lg" py={8}>
-      {/* Current Balance Display */}
+    <Box 
+      minH="100vh" 
+      bgGradient="linear(to-t, #1C495E, #17694D)"
+      fontFamily="'Roboto', sans-serif"
+    >
+      <Container maxW="container.lg" py={8}>
       <Box 
         w="full" 
-        p={6} 
-        bg="blue.500" 
-        color="white" 
-        borderRadius="lg" 
+        p={2} 
+        bg="white" 
+        color="gray.800" 
+        borderRadius="xl" 
+        borderWidth="1px"
+        borderColor="gray.200"
+        shadow="sm"
         mb={8}
         textAlign="center"
       >
-        <Text fontSize="lg" mb={2}>Current Balance</Text>
-        <Text fontSize="4xl" fontWeight="bold">
+        <Text fontSize="md" mb={1} color="gray.600" fontFamily="'Roboto', sans-serif">Current Balance</Text>
+        <Text 
+          fontSize="3xl" 
+          fontWeight="bold" 
+          bgGradient="linear(to-t, #1C495E, #17694D)"
+          bgClip="text"
+        >
           ৳{balance.toFixed(2)}
         </Text>
       </Box>
-
-      {/* Add Income and Expense Side by Side */}
       <Grid templateColumns="repeat(2, 1fr)" gap={6} mb={8}>
-        {/* Add Income */}
         <GridItem>
-          <Box borderWidth="1px" borderColor="gray.200" borderRadius="lg" p={6} bg="white">
-            <VStack spacing={4} align="stretch">
-              <Text fontSize="2xl" fontWeight="bold" color="gray.800" textAlign="center">
+          <Box borderWidth="1px" borderColor="gray.200" borderRadius="xl" p={6} bg="white" shadow="sm" height="460px">
+            <VStack spacing={4} align="stretch" height="100%" justify="space-between">
+              <Text fontSize="2xl" fontWeight="bold" color="gray.800" textAlign="center" fontFamily="'Roboto', sans-serif">
                 Add Income
-              </Text>
-              
-              <FormControl isRequired>
-                <FormLabel color="gray.600">Amount (৳)</FormLabel>
-                <Input
-                  type="number"
-                  value={incomeAmount}
-                  onChange={(e) => setIncomeAmount(e.target.value)}
-                  bg="white"
-                  focusBorderColor="blue.500"
-                />
-              </FormControl>
-
-              <FormControl>
-                <FormLabel color="gray.600">Description</FormLabel>
-                <Textarea
-                  value={incomeDescription}
-                  onChange={(e) => setIncomeDescription(e.target.value)}
-                  resize="none"
-                  rows={3}
-                  bg="white"
-                  focusBorderColor="blue.500"
-                />
-              </FormControl>
-              
+              </Text>      
+              <VStack spacing={4} align="stretch" flex="1">
+                <FormControl isRequired>
+                  <FormLabel color="gray.600" fontFamily="'Roboto', sans-serif">Amount (৳)</FormLabel>
+                  <Input
+                    type="number"
+                    value={incomeAmount}
+                    onChange={(e) => setIncomeAmount(e.target.value)}
+                    bg="white"
+                    focusBorderColor="blue.500"
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="gray.600" fontFamily="'Roboto', sans-serif">Description</FormLabel>
+                  <Textarea
+                    value={incomeDescription}
+                    onChange={(e) => setIncomeDescription(e.target.value)}
+                    resize="none"
+                    rows={7}
+                    bg="white"
+                    focusBorderColor="blue.500"
+                  />
+                </FormControl>
+              </VStack>            
               <Button 
                 colorScheme="green" 
                 size="lg"
@@ -169,55 +141,51 @@ const Transactions = () => {
             </VStack>
           </Box>
         </GridItem>
-
-        {/* Add Expense */}
         <GridItem>
-          <Box borderWidth="1px" borderColor="gray.200" borderRadius="lg" p={6} bg="white">
-            <VStack spacing={4} align="stretch">
-              <Text fontSize="2xl" fontWeight="bold" color="gray.800" textAlign="center">
+          <Box borderWidth="1px" borderColor="gray.200" borderRadius="xl" p={6} bg="white" shadow="sm" height="460px">
+            <VStack spacing={4} align="stretch" height="100%" justify="space-between">
+              <Text fontSize="2xl" fontWeight="bold" color="gray.800" textAlign="center" fontFamily="'Roboto', sans-serif">
                 Add Expense
-              </Text>
-              
-              <FormControl isRequired>
-                <FormLabel color="gray.600">Amount (৳)</FormLabel>
-                <Input
-                  type="number"
-                  value={expenseAmount}
-                  onChange={(e) => setExpenseAmount(e.target.value)}
-                  bg="white"
-                  focusBorderColor="blue.500"
-                />
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel color="gray.600">Category</FormLabel>
-                <Select
-                  value={expenseCategory}
-                  onChange={(e) => setExpenseCategory(e.target.value)}
-                  placeholder="Select expense category"
-                  bg="white"
-                  focusBorderColor="blue.500"
-                >
-                  {expenseCategories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl>
-
-              <FormControl>
-                <FormLabel color="gray.600">Description</FormLabel>
-                <Textarea
-                  value={expenseDescription}
-                  onChange={(e) => setExpenseDescription(e.target.value)}
-                  resize="none"
-                  rows={3}
-                  bg="white"
-                  focusBorderColor="blue.500"
-                />
-              </FormControl>
-              
+              </Text>              
+              <VStack spacing={4} align="stretch" flex="1">
+                <FormControl isRequired>
+                  <FormLabel color="gray.600" fontFamily="'Roboto', sans-serif">Amount (৳)</FormLabel>
+                  <Input
+                    type="number"
+                    value={expenseAmount}
+                    onChange={(e) => setExpenseAmount(e.target.value)}
+                    bg="white"
+                    focusBorderColor="blue.500"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel color="gray.600" fontFamily="'Roboto', sans-serif">Category</FormLabel>
+                  <Select
+                    value={expenseCategory}
+                    onChange={(e) => setExpenseCategory(e.target.value)}
+                    placeholder="Select expense category"
+                    bg="white"
+                    focusBorderColor="blue.500"
+                  >
+                    {expenseCategories.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl>
+                  <FormLabel color="gray.600" fontFamily="'Roboto', sans-serif">Description</FormLabel>
+                  <Textarea
+                    value={expenseDescription}
+                    onChange={(e) => setExpenseDescription(e.target.value)}
+                    resize="none"
+                    rows={3}
+                    bg="white"
+                    focusBorderColor="blue.500"
+                  />
+                </FormControl>
+              </VStack>              
               <Button 
                 colorScheme="red" 
                 size="lg"
@@ -230,15 +198,21 @@ const Transactions = () => {
           </Box>
         </GridItem>
       </Grid>
-
-      {/* Transaction History */}
-      <Box>
+      <Box 
+        p={6} 
+        borderWidth="1px" 
+        borderRadius="xl" 
+        bg="white" 
+        borderColor="gray.200" 
+        shadow="sm"
+      >
         <TransactionHistory 
           key={refreshHistory} 
           onBalanceUpdate={(newBalance) => setBalance(newBalance)} 
         />
       </Box>
     </Container>
+    </Box>
   )
 }
 

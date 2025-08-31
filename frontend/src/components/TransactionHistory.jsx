@@ -1,44 +1,26 @@
-import { useState, useEffect } from 'react'
-import { 
-  Box, 
-  VStack, 
-  HStack, 
-  Text, 
-  Spinner, 
-  Alert, 
-  AlertIcon,
-  Button,
-  useToast,
-  Flex,
-  IconButton,
-  useDisclosure,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay
-} from '@chakra-ui/react'
-import { useAuth } from '../context/AuthContext'
+import {useState, useEffect} from 'react'
+import {Box, VStack, HStack, Text, Spinner, Alert, AlertIcon,Button,useToast,Flex,IconButton,useDisclosure,AlertDialog,AlertDialogBody,AlertDialogFooter,AlertDialogHeader,AlertDialogContent,AlertDialogOverlay} from '@chakra-ui/react'
+import {useAuth} from '../context/AuthContext'
+
 
 const TransactionHistory = ({ onBalanceUpdate }) => {
-  const { user } = useAuth()
+  const {user} = useAuth()
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [deletingId, setDeletingId] = useState(null)
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const {isOpen, onOpen, onClose} = useDisclosure()
   const [transactionToDelete, setTransactionToDelete] = useState(null)
   const toast = useToast()
+
 
   const fetchTransactions = async (pageNum = 1) => {
     try {
       setLoading(true)
       const response = await fetch(`http://localhost:5000/api/transactions/${user.id}?page=${pageNum}&limit=10`)
       const data = await response.json()
-      
       if (data.success) {
         setTransactions(data.data.transactions)
         setTotalPages(data.data.totalPages)
@@ -48,22 +30,17 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
       }
     } catch (error) {
       setError('Could not load transactions')
-      toast({
-        title: 'Error',
-        description: 'Could not load transaction history',
-        status: 'error',
-        duration: 3000
-      })
+      toast({title: 'Error',description: 'Could not load transaction history',status: 'error',duration: 3000})
     } finally {
       setLoading(false)
     }
   }
-
   useEffect(() => {
     if (user) {
       fetchTransactions()
     }
   }, [user])
+
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
@@ -76,71 +53,54 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
     })
   }
 
+
   const getTransactionColor = (type) => {
     return type === 'income' ? 'green.500' : 'red.500'
   }
 
+
   const getTransactionSign = (type) => {
     return type === 'income' ? '+' : '-'
   }
+
 
   const handlePageChange = (newPage) => {
     setPage(newPage)
     fetchTransactions(newPage)
   }
 
+
   const handleDeleteClick = (transaction) => {
     setTransactionToDelete(transaction)
     onOpen()
   }
 
+
   const handleDeleteConfirm = async () => {
     if (!transactionToDelete) return
-
     try {
       setDeletingId(transactionToDelete._id)
       const response = await fetch(`http://localhost:5000/api/transactions/${user.id}/${transactionToDelete._id}`, {
         method: 'DELETE'
       })
       const data = await response.json()
-
       if (data.success) {
-        // Update transactions list
         setTransactions(transactions.filter(t => t._id !== transactionToDelete._id))
-        
-        // Update parent component's balance
         if (onBalanceUpdate) {
           onBalanceUpdate(data.data.newBalance)
         }
-
-        toast({
-          title: 'Success',
-          description: 'Transaction deleted successfully',
-          status: 'success',
-          duration: 3000
-        })
+        toast({title: 'Success', description: 'Transaction deleted successfully', status: 'success', duration: 3000})
       } else {
-        toast({
-          title: 'Error',
-          description: data.message || 'Could not delete transaction',
-          status: 'error',
-          duration: 3000
-        })
+        toast({title: 'Error', description: data.message || 'Could not delete transaction', status: 'error', duration: 3000})
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Could not delete transaction',
-        status: 'error',
-        duration: 3000
-      })
+      toast({title: 'Error', description: 'Could not delete transaction', status: 'error', duration: 3000})
     } finally {
       setDeletingId(null)
       setTransactionToDelete(null)
       onClose()
     }
   }
-
   if (loading) {
     return (
       <Box textAlign="center" py={8}>
@@ -149,7 +109,6 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
       </Box>
     )
   }
-
   if (error) {
     return (
       <Alert status="error" borderRadius="md">
@@ -158,26 +117,20 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
       </Alert>
     )
   }
-
   if (transactions.length === 0) {
     return (
       <Box textAlign="center" py={8}>
         <Text color="gray.500" fontSize="lg">
           No transactions found
         </Text>
-        <Text color="gray.400" fontSize="sm" mt={2}>
-          Add your first income or expense to get started!
-        </Text>
       </Box>
     )
   }
-
   return (
     <Box>
       <Text fontSize="2xl" fontWeight="bold" mb={6}>
         Transaction History
       </Text>
-      
       <VStack spacing={3} align="stretch">
         {transactions.map((transaction) => (
           <Box
@@ -195,12 +148,10 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
                 <Text fontWeight="medium" color="gray.800" fontSize="md">
                   {transaction.category}
                 </Text>
-                
                 <Text fontSize="sm" color="gray.500">
                   {formatDate(transaction.date)}
                 </Text>
               </VStack>
-
               <HStack align="center" spacing={3}>
                 <VStack align="end" spacing={1}>
                   <HStack align="center">
@@ -222,13 +173,12 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
                     </Text>
                   </HStack>
                 </VStack>
-
                 <IconButton
                   size="sm"
                   colorScheme="red"
-                  variant="outline"
+                  variant="ghost"
                   aria-label="Delete transaction"
-                  icon={<Text fontSize="sm" fontWeight="bold">×</Text>}
+                  icon={<Text fontSize="lg" fontWeight="bold">×</Text>}
                   onClick={() => handleDeleteClick(transaction)}
                   isLoading={deletingId === transaction._id}
                 />
@@ -237,7 +187,6 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
           </Box>
         ))}
       </VStack>
-
       {totalPages > 1 && (
         <Flex justify="center" mt={8} gap={2}>
           <Button
@@ -246,8 +195,7 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
             isDisabled={page === 1}
           >
             Previous
-          </Button>
-          
+          </Button>    
           <HStack spacing={2}>
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum
@@ -259,8 +207,7 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
                 pageNum = totalPages - 4 + i
               } else {
                 pageNum = page - 2 + i
-              }
-              
+              }              
               return (
                 <Button
                   key={pageNum}
@@ -274,7 +221,6 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
               )
             })}
           </HStack>
-          
           <Button
             size="sm"
             onClick={() => handlePageChange(page + 1)}
@@ -284,8 +230,6 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
           </Button>
         </Flex>
       )}
-
-      {/* Delete Confirmation Dialog */}
       <AlertDialog
         isOpen={isOpen}
         onClose={onClose}
@@ -296,7 +240,6 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
               Delete Transaction
             </AlertDialogHeader>
-
             <AlertDialogBody>
               Are you sure you want to delete this transaction?
               <br />
@@ -306,7 +249,6 @@ const TransactionHistory = ({ onBalanceUpdate }) => {
                 This will also update your balance accordingly.
               </Text>
             </AlertDialogBody>
-
             <AlertDialogFooter>
               <Button onClick={onClose}>
                 Cancel
